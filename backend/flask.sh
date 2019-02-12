@@ -1,0 +1,1 @@
+export FLASK_APP=predict.py flask run
