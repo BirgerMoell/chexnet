@@ -1,4 +1,6 @@
-# reproduce-chexnet
+# Chexnet webapp
+A webapp implementation using react, pytorch and flask of chexnet.
+![alt text](https://i.imgur.com/9VWSgqV.png "Logo Title Text 1")
 
 ## How to run frontend
 ```bash
