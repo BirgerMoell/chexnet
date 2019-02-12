@@ -6,6 +6,7 @@ import visualize_prediction as V
 import pandas as pd
 import warnings
 from werkzeug.utils import secure_filename
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 CORS(app)
@@ -33,14 +34,18 @@ def predict():
 def upload_file():
    if request.method == 'POST':
       f = request.files['file']
+      print("the request is")
+      print(request)
       # when saving the file
+      # This is hardcoded to work with Pneumonia need to fix for all diseases.
       f.save(os.path.join(app.instance_path, secure_filename('00000165_001.png')))
       # prediction
       STARTER_IMAGES=False
-
       PATH_TO_IMAGES = 'instance'
       PATH_TO_MODEL = "pretrained/checkpoint"
       LABEL="Pneumonia"
+      ## Need to figure out how to change the hardcoded values in order to change the diagnosis type
+      #LABEL=request.form['diagnosis']
       POSITIVE_FINDINGS_ONLY=True
       dataloader,model= V.load_data(PATH_TO_IMAGES,LABEL,PATH_TO_MODEL,POSITIVE_FINDINGS_ONLY,STARTER_IMAGES)
       print("Cases for review:")
@@ -55,5 +60,4 @@ def upload_file():
       response.headers['Content-Type'] = 'image/png'
       preds.close()
       return response
-
       #return jsonify({ 'uploaded': True })

@@ -29,6 +29,11 @@ class App extends Component {
     setTimeout(this.upload, 750);
   };
 
+  reqListener = () => {
+    console.log(this.responseText);
+  }
+
+
   upload = async () => {
     this.setState({
       showPrediction: true,
@@ -37,6 +42,24 @@ class App extends Component {
 
     let file = this.state.selectedFile;
     console.log("the file is", file);
+
+    var formData = new FormData();
+
+    if (this.state.diagnosis) {
+      formData.append("diagnosis", this.state.diagnosis);
+    } else {
+      formData.append("diagnosis", "Pneumonia");
+    }
+
+    // HTML file input, chosen by user
+    formData.append("file", file);
+
+    var request = new XMLHttpRequest();
+    request.addEventListener("load", this.reqListener);
+    request.open("POST", "http://localhost:5000/uploader");
+    request.send(formData);
+    //var body = XMLHttpRequest.response;
+    //console.log("the body is", body);
 
     // if (file) {
     //   try {
@@ -62,6 +85,10 @@ class App extends Component {
     });
   };
 
+  setDiagnosis = event => {
+    this.setState({ diagnosis: event.target.value });
+  };
+
   render() {
     return (
       <div className="App">
@@ -79,20 +106,16 @@ class App extends Component {
 
           <p>Radiology prediction</p>
           <div>
-            <form
-              action="http://localhost:5000/uploader"
-              method="POST"
-              enctype="multipart/form-data"
-            >
-
-            <select>
+            <select onChange={this.setDiagnosis} value={this.state.value}>
               <option value="Atelectasis">Atelectasis</option>
               <option value="Cardiomegaly">Cardiomegaly</option>
               <option value="Effusion">Effusion</option>
               <option value="Infiltration">Infiltration</option>
               <option value="Mass">Mass</option>
               <option value="Nodule">Nodule</option>
-              <option selected value="Pneumonia">Pneumonia</option>
+              <option selected value="Pneumonia">
+                Pneumonia
+              </option>
               <option value="Pneumothorax">Pneumothorax</option>
               <option value="Consolidation">Consolidation</option>
               <option value="Edema">Edema</option>
@@ -101,21 +124,8 @@ class App extends Component {
               <option value="Pleural_Thickening">Pleural_Thickening</option>
               <option value="Hernia">Hernia</option>
             </select>
-              <input type="file" name="file" onChange={this.handleselectedFile}/>
-
-
-              <input type="submit" onClick={this.handleUpload} />
-            </form>
-
-            {/* <input
-              type="file"
-              name=""
-              id=""
-              onChange={this.handleselectedFile}
-            />
-
-            <button onClick={this.handleUpload}>Make prediction</button> */}
-
+            <input type="file" name="file" onChange={this.handleselectedFile} />
+            <button onClick={this.handleUpload}>Make prediction</button>
           </div>
 
           <div className="Prediction-container">
