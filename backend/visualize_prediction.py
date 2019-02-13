@@ -299,7 +299,9 @@ def show_next(dataloader, model, LABEL):
     showcxr.axis('off')
     showcxr.set_title(filename[0])
     plt.savefig(str(LABEL+"_P"+str(predx[label_index])+"_file_"+filename[0]))
-    plt.show()
+    imglocation = str(LABEL+"_P"+str(predx[label_index])+"_file_"+filename[0])
+    print(imglocation)
+    #plt.show()
 
 
 
@@ -309,7 +311,7 @@ def show_next(dataloader, model, LABEL):
     preds.set_index("Finding",inplace=True)
     preds.sort_values(by='Predicted Probability',inplace=True,ascending=False)
 
-    return preds
+    return preds, imglocation
 
 
 def show_single(dataloader, model, LABEL):

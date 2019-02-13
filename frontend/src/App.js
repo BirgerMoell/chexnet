@@ -6,6 +6,7 @@ import "./App.css";
 import { css } from "@emotion/core";
 import { ClipLoader } from "react-spinners";
 import { PDFReader } from "react-read-pdf";
+var base64Img = require('base64-img');
 
 const override = css`
   display: block;
@@ -31,7 +32,20 @@ class App extends Component {
 
   reqListener = () => {
     console.log(this.responseText);
-  }
+  };
+
+  base64encode = () => {
+    return new Promise((resolve, reject) => {
+      var file = this.state.selectedFile;
+      var reader = new FileReader();
+      reader.onloadend = () => {
+        console.log("RESULT", reader.result);
+        resolve(reader.result)
+      }
+      reader.readAsDataURL(file);
+    })
+  };
+
 
 
   upload = async () => {
@@ -42,41 +56,50 @@ class App extends Component {
 
     let file = this.state.selectedFile;
     console.log("the file is", file);
+    let base64img = await this.base64encode();
+    console.log("the image is", base64img)
 
-    var formData = new FormData();
+    let diagnosis
 
     if (this.state.diagnosis) {
-      formData.append("diagnosis", this.state.diagnosis);
+      diagnosis = this.state.diagnosis;
     } else {
-      formData.append("diagnosis", "Pneumonia");
+      diagnosis = "Pneumonia"
     }
 
-    // HTML file input, chosen by user
-    formData.append("file", file);
+    let url = "http://localhost:5000/uploader";
+    try {
+      let data = { base64img, diagnosis };
+      // try to send the image using fetch
+      let response = await fetch(url, {
+        method: "POST", // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      console.log("the response is", response)
 
-    var request = new XMLHttpRequest();
-    request.addEventListener("load", this.reqListener);
-    request.open("POST", "http://localhost:5000/uploader");
-    request.send(formData);
-    //var body = XMLHttpRequest.response;
-    //console.log("the body is", body);
+      let responseJson = await response.json();
+      console.log("the response json is", responseJson);
 
-    // if (file) {
-    //   try {
-    //     const response = await fetch("http://localhost:5000/predict", {
-    //       // Your POST endpoint
-    //       method: "POST",
-    //       headers: { "Content-Type": "application/json" },
-    //       body: file
-    //       // This is your file object
-    //     });
-    //     console.log("the response is", response);
-    //     const responseJson = response.json();
-    //     console.log("the response is", responseJson);
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // }
+      this.setState({
+        response: responseJson
+      })
+    } catch (err) {
+      console.error("Error:", err);
+    }
+
+    // var formData = new FormData();
+
+
+
+    // // HTML file input, chosen by user
+    // formData.append("file", file);
+    // var request = new XMLHttpRequest();
+    // request.addEventListener("load", this.reqListener);
+    // request.open("POST", "http://localhost:5000/uploader");
+    // request.send(formData);
   };
 
   handleselectedFile = event => {
@@ -140,10 +163,10 @@ class App extends Component {
             </div>
           </div>
 
-          {this.state.showPrediction && (
+          {this.state.showPrediction && this.state.response && this.state.response.prediction && (
             <div className="Prediction-container" id="prediction">
-              <h5>Prediction, Pneumonia, 0.06</h5>
-              <img className="Prediction-image" src={prediction} />
+              <h5>Prediction, Pneumonia, {this.state.response.prediction["Predicted Probability"]["Pneumonia"]}</h5>
+              <img className="Prediction-image" src={prediction}/>
             </div>
           )}
 

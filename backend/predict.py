@@ -7,10 +7,15 @@ import pandas as pd
 import warnings
 from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
+import base64
+import json
+from io import BytesIO
+from PIL import Image
+
 
 app = Flask(__name__)
 CORS(app)
-
+ENCODING = 'utf-8'
 # create the folders when setting up your app
 os.makedirs(os.path.join(app.instance_path), exist_ok=True)
 
@@ -33,9 +38,20 @@ def predict():
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':
-      f = request.files['file']
+      #f = request.files['file']
       print("the request is")
-      print(request)
+      #print(request)
+      content = request.json
+      #print(content)
+
+      file = content['base64img']
+      diagnosis = content['diagnosis']
+
+      starter = file.find(',')
+      image_data = file[starter+1:]
+      image_data = bytes(image_data, encoding="ascii")
+      f = Image.open(BytesIO(base64.b64decode(image_data)))
+
       # when saving the file
       # This is hardcoded to work with Pneumonia need to fix for all diseases.
       f.save(os.path.join(app.instance_path, secure_filename('00000165_001.png')))
@@ -50,14 +66,24 @@ def upload_file():
       dataloader,model= V.load_data(PATH_TO_IMAGES,LABEL,PATH_TO_MODEL,POSITIVE_FINDINGS_ONLY,STARTER_IMAGES)
       print("Cases for review:")
       print(len(dataloader))
-      preds=V.show_next(dataloader,model, LABEL)
+      preds, imglocation=V.show_next(dataloader,model, LABEL)
+      print(preds)
+      print(imglocation)
+      encodedimage = ""
+
+      with open(imglocation, "rb") as image_file:
+         encodedimage = base64.b64encode(image_file.read())
       #preds
 
-      plt.savefig(preds, format='png')
-      preds.seek(0)
+      print(encodedimage)
+      base64_string = encodedimage.decode(ENCODING)
 
-      response=make_response(preds.getvalue())
-      response.headers['Content-Type'] = 'image/png'
-      preds.close()
-      return response
-      #return jsonify({ 'uploaded': True })
+      # plt.savefig(preds, format='png')
+      # preds.seek(0)
+      # response=make_response(preds.getvalue())
+      # response.headers['Content-Type'] = 'image/png'
+      # preds.close()
+      #return send_file(preds, mimetype='image/png')
+      #return response
+      jsonfiles = json.loads(preds.to_json())
+      return jsonify({ 'prediction': jsonfiles, 'encodedimage': base64_string  })
