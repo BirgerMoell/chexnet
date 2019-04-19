@@ -11,6 +11,9 @@ from skimage import io, transform
 from PIL import Image
 from pylab import *
 import seaborn as sns
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from matplotlib.pyplot import show
 
 # data science
@@ -204,7 +207,7 @@ def load_data(
         'Hernia']
 
     data_transform = transforms.Compose([
-        transforms.Scale(224),
+        transforms.Resize(224),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
@@ -223,7 +226,9 @@ def load_data(
         starter_images=STARTER_IMAGES)
 
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=1, shuffle=False, num_workers=1)
+        dataset, batch_size=1, shuffle=False, num_workers=0)
+
+    print("loaded the data successfully")
 
     return iter(dataloader), model
 
@@ -273,7 +278,12 @@ def show_next(dataloader, model, LABEL):
     pred = model(torch.autograd.Variable(original.cpu())).data.numpy()[0]
     predx = ['%.3f' % elem for elem in list(pred)]
 
+    # switch backend in matplotlib
+    print("before plotting")
+    #
     fig, (showcxr,heatmap) =plt.subplots(ncols=2,figsize=(14,5))
+
+    print("after")
 
     hmap = sns.heatmap(raw_cam.squeeze(),
             cmap = 'viridis',
@@ -282,11 +292,14 @@ def show_next(dataloader, model, LABEL):
             zorder = 2,square=True,vmin=-5,vmax=5
             )
 
+    print("after hmap")
     cxr=inputs.numpy().squeeze().transpose(1,2,0)
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     cxr = std * cxr + mean
     cxr = np.clip(cxr, 0, 1)
+
+    print("before imshow")
 
     hmap.imshow(cxr,
           aspect = hmap.get_aspect(),
@@ -300,9 +313,10 @@ def show_next(dataloader, model, LABEL):
     showcxr.set_title(filename[0])
     plt.savefig(str(LABEL+"_P"+str(predx[label_index])+"_file_"+filename[0]))
     imglocation = str(LABEL+"_P"+str(predx[label_index])+"_file_"+filename[0])
+    print("saved the image successfully")
     print(imglocation)
     #plt.show()
-
+    #plt.close()
 
 
     preds_concat=pd.concat([pd.Series(FINDINGS),pd.Series(predx),pd.Series(labels.numpy().astype(bool)[0])],axis=1)

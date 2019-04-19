@@ -46,6 +46,12 @@ class App extends Component {
     })
   };
 
+  decode_utf8 = (s) => {
+    console.log("inside decode with", s)
+    return new Promise((resolve, reject) => {
+      resolve(decodeURIComponent(escape(s)))
+    })
+  }
 
 
   upload = async () => {
@@ -82,9 +88,12 @@ class App extends Component {
 
       let responseJson = await response.json();
       console.log("the response json is", responseJson);
+      const imageString = responseJson.encodedimage
+      const decodedImage = await this.decode_utf8(imageString)
 
       this.setState({
-        response: responseJson
+        response: responseJson,
+        image: decodedImage
       })
     } catch (err) {
       console.error("Error:", err);
@@ -167,6 +176,7 @@ class App extends Component {
             <div className="Prediction-container" id="prediction">
               <h5>Prediction, Pneumonia, {this.state.response.prediction["Predicted Probability"]["Pneumonia"]}</h5>
               <img className="Prediction-image" src={prediction}/>
+              {/* <img className="Prediction-image" src={this.state.response.encodedimage}/> */}
             </div>
           )}
 

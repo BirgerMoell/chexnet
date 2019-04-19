@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 import base64
 import json
+import cv2
 from io import BytesIO
 from PIL import Image
 
@@ -18,22 +19,6 @@ CORS(app)
 ENCODING = 'utf-8'
 # create the folders when setting up your app
 os.makedirs(os.path.join(app.instance_path), exist_ok=True)
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    print(request)
-    print("the request files are")
-    print(request.files)
-    file = request.files['file']
-    file.filename="our.jpg"
-    print(file.filename)
-    file.save(file.filename)
-    testimage = scipy.misc.imresize(scipy.misc.imread(file),(150,150))
-    print(testimage.shape)
-    testimage = testimage.reshape((1,) + testimage.shape)
-    prediction = loaded_model.predict(testimage).astype(float)
-    print(prediction)
-    return jsonify({ 'classification': { 'cat': prediction[0][0], 'dog' : 1-prediction[0][0]} })
 
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
@@ -63,27 +48,25 @@ def upload_file():
       ## Need to figure out how to change the hardcoded values in order to change the diagnosis type
       #LABEL=request.form['diagnosis']
       POSITIVE_FINDINGS_ONLY=True
+      # check the data loader for errors
       dataloader,model= V.load_data(PATH_TO_IMAGES,LABEL,PATH_TO_MODEL,POSITIVE_FINDINGS_ONLY,STARTER_IMAGES)
       print("Cases for review:")
       print(len(dataloader))
+      # check the show_next for errors
       preds, imglocation=V.show_next(dataloader,model, LABEL)
       print(preds)
       print(imglocation)
       encodedimage = ""
 
+      # img = cv2.imread(imglocation)
+      # _, img_encoded = cv2.imencode('.jpg', img)
+
+      # Encode image
       with open(imglocation, "rb") as image_file:
          encodedimage = base64.b64encode(image_file.read())
-      #preds
-
-      print(encodedimage)
+      # Encoded image
+      #print(encodedimage)
+      # Base 64 string from image
       base64_string = encodedimage.decode(ENCODING)
-
-      # plt.savefig(preds, format='png')
-      # preds.seek(0)
-      # response=make_response(preds.getvalue())
-      # response.headers['Content-Type'] = 'image/png'
-      # preds.close()
-      #return send_file(preds, mimetype='image/png')
-      #return response
       jsonfiles = json.loads(preds.to_json())
       return jsonify({ 'prediction': jsonfiles, 'encodedimage': base64_string  })
