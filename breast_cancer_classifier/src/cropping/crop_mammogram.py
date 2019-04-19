@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-sys.path.append('/Users/birgermoell/Google Drive/Code/radiology/reproduce-chexnet/breast_cancer_classifier/')
+sys.path.append('/home/birgermoell/chexnet/breast_cancer_classifier/src')
 
 import src.utilities.pickling as pickling
 import src.utilities.reading_images as reading_images

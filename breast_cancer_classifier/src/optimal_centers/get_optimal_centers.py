@@ -28,7 +28,7 @@ import numpy as np
 import os
 import sys
 
-sys.path.append('/Users/birgermoell/Google Drive/Code/radiology/reproduce-chexnet/breast_cancer_classifier/')
+sys.path.append('/home/birgermoell/chexnet/breast_cancer_classifier')
 
 
 from itertools import repeat

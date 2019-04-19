@@ -35,7 +35,7 @@ import torch.nn.functional as F
 
 import sys
 
-sys.path.append('/Users/birgermoell/Google Drive/Code/radiology/reproduce-chexnet/breast_cancer_classifier/')
+sys.path.append('/home/birgermoell/chexnet/breast_cancer_classifier')
 
 import src.heatmaps.models as models
 import src.data_loading.loading as loading
